@@ -1,0 +1,181 @@
+<%- include("header.html") %>
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-sm-4">
+            <h2>添加数据</h2>
+        </div>
+    </div>
+    <!-- 表单    -->
+    <div class="ibox float-e-margins">
+        <div class="ibox-content">
+            <form method="post" action="add" class="form-horizontal">
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">标题：</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="title" class="form-control" placeholder="">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">地址：</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="address" class="form-control" placeholder="">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">价格：</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="price" class="form-control" placeholder="">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">旧价格：</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="oldPrice" class="form-control" placeholder="">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">收藏：</label>
+                    <div class="col-sm-9">
+                        <label class="radio-inline">
+                                <input type="radio" checked="" value="true" id="" name="iscollect">收藏</label>
+                        <label class="radio-inline">
+                                <input type="radio" value="false" id="" name="iscollect">未收藏</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">简介：</label>
+                    <div class="col-sm-9">
+                        <textarea data-provide="markdown" type="text" cols="30" rows="10" name="description" class="form-control" placeholder=""></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">内容：</label>
+                    <div class="col-sm-9">
+                        <textarea type="text" cols="30" rows="10" name="content" class="summernote" placeholder=""></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">缩略图：</label>
+                    <div class="col-sm-9">
+                        <input type="file" id="thumbnail">
+                        <input type="hidden" name="thumbnail">
+                        <img id="images" src="/uploads/uploads.jpg" alt="">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">多图片上传：</label>
+                    <div class="col-sm-9">
+                        <div class="row">
+                            <input type="file" class="pull-left" id="imgs">
+                            <font color="red" class="pull-left">双击删除图片</font>
+                        </div>
+                        <div id="imagelist" class="clearfix">
+                            <!-- <p class="pull-left">
+                                <input type="text" name="imgs" >
+                                <img src="/uploads/uploads.jpg" height="200" alt="">
+                            </p> -->
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-12 col-sm-offset-3">
+                        <button class="btn btn-primary" type="submit">保存内容</button>
+                        <button class="btn btn-white" type="submit">取消</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- 表单 end    -->
+    <%- include("footer.html") %>
+
+        <script>
+            $(function() {
+                //缩略图
+                $("#thumbnail").change(function() {
+                    //获取图片对象
+                    // console.log($(this))
+                    var file = $(this)[0];
+                    var formData = new FormData(); //实例化表单提交对象
+                    // console.log(formData)
+                    formData.append("file", file.files[0])
+                    var _this = $(this)
+                    $.ajax({
+                        url: "/admin/goods/upload",
+                        type: "post",
+                        data: formData,
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        success: function(data) {
+                            //图片提交成功，提交成功图片路径
+                            // console.log(data);
+                            _this.next().val(data.url).next().attr("src", data.url)
+                        }
+                    })
+                })
+
+                //多图片上传
+                $("#imgs").change(function() {
+                    //获取图片对象
+                    // console.log($(this))
+                    var file = $(this)[0];
+                    var formData = new FormData(); //实例化表单提交对象
+                    // console.log(formData)
+                    formData.append("file", file.files[0])
+                    var _this = $(this)
+                    $.ajax({
+                        url: "/admin/goods/upload",
+                        type: "post",
+                        data: formData,
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        success: function(data) {
+                            //图片提交成功，提交成功图片路径
+                            var str = "";
+                            str += '<p class="pull-left">'
+                            str += '<input type="hidden" name="imgs" value="' + data.url + '" >'
+                            str += '<img src="' + data.url + '" height="200" alt="">'
+                            str += '</p>'
+                            $("#imagelist").append(str)
+                        }
+                    })
+                })
+
+                //双击删除图片
+                $("#imagelist").on("dblclick", "p", function() {
+                    var url = $(this).find("input").val();
+                    var _this = $(this);
+                    $.ajax({
+                        url: "/admin/goods/deleteImg",
+                        type: "post",
+                        data: {
+                            "url": url
+                        },
+                        success: function(data) {
+                            if (data == 1) {
+                                _this.remove();
+                            }
+                        }
+                    })
+                })
+
+                //双击删除缩略图
+                $("#images").dblclick(function() {
+                    var url = $(this).prev().val();
+                    var _this = $(this);
+                    $.ajax({
+                        url: "/admin/goods/deleteImg",
+                        type: "post",
+                        data: {
+                            "url": url
+                        },
+                        success: function(data) {
+                            if (data == 1) {
+                                _this.attr("src", "");
+                            }
+                        }
+                    })
+                })
+            })
+        </script>
